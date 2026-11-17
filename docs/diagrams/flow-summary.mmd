@@ -1,0 +1,26 @@
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant E as SummaryController<br/>(Api)
+    participant S as SummaryService<br/>(Application)
+    participant D as MeterReadingsDbContext<br/>(Infrastructure)
+    participant K as ConsumptionSummaryCalculator<br/>(Domain)
+
+    C->>E: GET /api/meters/2/summary?fromUtc=...&toUtc=...
+    Note over E: fromUtc and toUtc are parsed to UTC.<br/>Missing, invalid, or from after to returns 400.
+    E->>S: GetAsync(meterId, range)
+    S->>D: does the meter exist?
+    alt meter not found
+        S-->>C: NotFoundException → 404
+    end
+    S->>D: load readings in the inclusive range
+    D-->>S: readings
+    S->>K: Calculate(readings, from, to)
+    Note over K: Filter to range, order by timestamp
+    loop each consecutive pair
+        Note over K: UsageCalculator.Calculate(previous, current) → kWh<br/>Attribute to the UTC date of the later reading
+    end
+    Note over K: Total = latest − earliest,<br/>or the sum of pairs if the range has a reset or decrease
+    K-->>S: ConsumptionSummary (total, daily)
+    S-->>E: SummaryResponse
+    E-->>C: 200 OK

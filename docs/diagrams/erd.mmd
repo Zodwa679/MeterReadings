@@ -1,0 +1,29 @@
+erDiagram
+    Sites ||--o{ Meters : "has many"
+    Meters ||--o{ MeterReadings : "has many"
+
+    Sites {
+        int Id PK "identity"
+        nvarchar Address "max 500, required"
+        nvarchar SiteType "enum stored as text: Unspecified (default), Residential, Commercial, Industrial"
+        nvarchar Status "enum stored as text: Active, Inactive"
+        datetime2 CreatedAt "UTC, set by the service on creation"
+    }
+
+    Meters {
+        int Id PK "identity"
+        int SiteId FK "required, delete restricted"
+        nvarchar MeterNumber UK "max 50, unique"
+        nvarchar MeterType "enum stored as text: Electricity"
+        nvarchar Status "enum stored as text: Active, Inactive, Decommissioned"
+        datetime2 CreatedAt "UTC"
+    }
+
+    MeterReadings {
+        bigint Id PK "identity"
+        int MeterId FK "required, delete restricted, unique together with TimestampUtc"
+        datetime2 TimestampUtc "UTC, when the meter was read, unique per meter"
+        decimal CumulativeKwh "12 digits 3 decimals, check: 0 or more"
+        bit IsReset "default false, true when the register was cleared"
+        datetime2 CreatedAt "UTC, when the system received the reading"
+    }

@@ -1,0 +1,27 @@
+%%{init: {"flowchart": {"wrappingWidth": 460, "nodeSpacing": 60, "rankSpacing": 45}}}%%
+flowchart TB
+    Client(["Client<br/>Swagger UI, curl, another service"])
+
+    Api["<b>MeterReadings.Api</b> (HTTP layer)<br/>Controllers: Sites, Meters, Readings, Summary<br/>GlobalExceptionHandler (ProblemDetails)<br/>UtcDateTimeJsonConverter, QueryTimestamps"]
+
+    App["<b>MeterReadings.Application</b> (use cases)<br/>Services: Site, Meter, Reading, Summary<br/>Request and response DTOs<br/>IApplicationDbContext"]
+
+    Infra["<b>MeterReadings.Infrastructure</b> (EF Core)<br/>MeterReadingsDbContext<br/>Entity configurations: unique indexes, check constraint<br/>UTC DateTime value converter<br/>InitialCreate migration and seed data"]
+
+    Dom["<b>MeterReadings.Domain</b> (no dependencies)<br/>Entities and enums: Site, Meter, MeterReading<br/>UsageCalculator<br/>ConsumptionSummaryCalculator"]
+
+    SQL[("SQL Server")]
+
+    Client -->|"HTTP + JSON"| Api
+    Api -->|"calls services"| App
+    Api -.->|"registers at startup"| Infra
+    Infra -->|"implements IApplicationDbContext"| App
+    App -->|"uses entities and calculators"| Dom
+    Infra -->|"EF Core"| SQL
+
+    classDef layer fill:#eef2ff,stroke:#4f46e5,color:#111827;
+    classDef core fill:#ecfdf5,stroke:#059669,color:#111827;
+    classDef ext fill:#f3f4f6,stroke:#6b7280,color:#111827;
+    class Api,App,Infra layer;
+    class Dom core;
+    class Client,SQL ext;

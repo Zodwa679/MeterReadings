@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant E as ReadingsController<br/>(Api)
+    participant S as ReadingService<br/>(Application)
+    participant D as MeterReadingsDbContext<br/>(Infrastructure)
+    participant Q as SQL Server
+
+    C->>E: POST /api/meters/3/readings
+    Note over E: Unreadable JSON or a timestamp with no Z/offset returns 400.<br/>Data annotations reject missing or negative kWh.
+    E->>S: AddAsync(meterId, request)
+    S->>D: does the meter exist?
+    alt meter not found
+        S-->>C: NotFoundException → 404
+    end
+    Note over S: CreatedAt is set from the injected TimeProvider
+    S->>D: SaveChangesAsync
+    D->>Q: INSERT
+    alt unique index violation
+        Q-->>D: error 2601 / 2627
+        D-->>C: ConflictException → 409
+    end
+    D-->>S: saved reading
+    S-->>E: ReadingResponse
+    E-->>C: 201 Created
