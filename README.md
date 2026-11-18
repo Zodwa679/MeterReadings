@@ -13,6 +13,12 @@ dotnet run --project src/MeterReadings.Api
 
 Open <http://localhost:5271/swagger>. In Development the API applies the migration and seed data on startup. To use another server, set `ConnectionStrings__DefaultConnection`.
 
+On Windows:
+
+- Docker Desktop must be using Linux containers (the WSL 2 backend). The SQL Server image is x64 only, so Windows on ARM is not supported.
+- If a local SQL Server already listens on 1433, stop it or map another port in `docker-compose.yml` (e.g. `"14330:1433"`) and update the connection string in `appsettings.Development.json`.
+- The `https` launch profile needs `dotnet dev-certs https --trust` once. The default `http` profile does not.
+
 ## Test
 
 ```bash
@@ -36,7 +42,7 @@ Timestamps must end in `Z` or an explicit offset such as `+02:00`; values withou
 
 ## Examples
 
-Seed data: site 1 with meters 1 (`MTR-1001`) and 2 (`MTR-1002`, includes a register reset). On a fresh database (`docker compose down -v`) the ids below line up.
+Seed data: site 1 with meters 1 (`MTR-1001`) and 2 (`MTR-1002`, includes a register reset). On a fresh database (`docker compose down -v`) the ids below line up. The commands use bash quoting; on Windows run them in Git Bash or WSL, or use Swagger.
 
 ```bash
 # Create a site → 201, Location: /api/sites/2
